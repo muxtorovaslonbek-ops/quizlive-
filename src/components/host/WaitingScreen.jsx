@@ -3,8 +3,11 @@ import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { subscribeToPlayerCount } from '../../firebase/db';
 import { EASE_OUT } from '../../lib/motion';
+import { useI18n } from '../../i18n/LanguageContext';
+import LanguageSwitcher from '../../i18n/LanguageSwitcher';
 
 export default function WaitingScreen({ gameState }) {
+  const { t } = useI18n();
   const [playerCount, setPlayerCount] = useState(0);
 
   useEffect(() => {
@@ -32,6 +35,8 @@ export default function WaitingScreen({ gameState }) {
         />
       </div>
 
+      <LanguageSwitcher className="absolute top-8 left-8 z-20" />
+
       {/* Player count badge */}
       <motion.div
         key={playerCount}
@@ -40,7 +45,7 @@ export default function WaitingScreen({ gameState }) {
         transition={{ duration: 0.25, ease: EASE_OUT }}
         className="absolute top-8 right-8 glass rounded-2xl px-6 py-3 text-center"
       >
-        <p className="text-brand-300 text-sm font-semibold uppercase tracking-wider">Players</p>
+        <p className="text-brand-300 text-sm font-semibold uppercase tracking-wider">{t('host.players')}</p>
         <p className="text-5xl font-black text-white">{playerCount}</p>
       </motion.div>
 
@@ -54,7 +59,7 @@ export default function WaitingScreen({ gameState }) {
           className="text-center"
         >
           <h1 className="text-7xl font-black gradient-text leading-none">{title}</h1>
-          <p className="text-brand-300 text-2xl mt-3 font-medium">Join Now!</p>
+          <p className="text-brand-300 text-2xl mt-3 font-medium">{t('host.joinNow')}</p>
         </motion.div>
 
         {/* QR Code */}
@@ -92,7 +97,7 @@ export default function WaitingScreen({ gameState }) {
         rel="noopener noreferrer"
         className="absolute bottom-4 left-0 right-0 text-center text-white/20 text-xs hover:text-white/40 transition-colors z-10"
       >
-        Built by DeadTechGuy
+        {t('common.builtBy')}
       </a>
     </div>
   );

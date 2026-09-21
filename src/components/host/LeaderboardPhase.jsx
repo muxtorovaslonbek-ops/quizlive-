@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Particles from '../shared/Particles';
 import { subscribeToPlayers } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
 // Tie-aware rank (players sorted desc by score already)
 const getRank = (players, score) =>
@@ -43,6 +44,7 @@ const PODIUM_STYLES = [
 ];
 
 function PodiumSlot({ player, rank, style, delay }) {
+  const { t } = useI18n();
   if (!player) return <div className="w-40" />;
 
   return (
@@ -96,13 +98,14 @@ function PodiumSlot({ player, rank, style, delay }) {
         <p className={`${style.textColor} font-black ${style.textSize} text-center px-2 w-full truncate`}>
           {player.name}
         </p>
-        <p className={`${style.subColor} text-xs font-bold mt-0.5`}>{player.score} pts</p>
+        <p className={`${style.subColor} text-xs font-bold mt-0.5`}>{player.score} {t('common.pts')}</p>
       </div>
     </motion.div>
   );
 }
 
 export default function LeaderboardPhase({ gameState, questions }) {
+  const { t } = useI18n();
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
@@ -145,7 +148,7 @@ export default function LeaderboardPhase({ gameState, questions }) {
           className="text-center"
         >
           <h1 className="text-6xl font-black gradient-text tracking-tight leading-none">
-            🏆 Leaderboard
+            {t('host.leaderboard')}
           </h1>
           {isLast && (
             <motion.p
@@ -154,7 +157,7 @@ export default function LeaderboardPhase({ gameState, questions }) {
               transition={{ delay: 0.5 }}
               className="text-brand-300 text-xl mt-2 font-semibold"
             >
-              Final Results!
+              {t('host.finalResults')}
             </motion.p>
           )}
         </motion.div>
@@ -207,7 +210,7 @@ export default function LeaderboardPhase({ gameState, questions }) {
 
                   <div className="flex items-center gap-1 shrink-0">
                     <span className="text-brand-300 font-black tabular-nums">{p.score}</span>
-                    <span className="text-white/30 text-xs">pts</span>
+                    <span className="text-white/30 text-xs">{t('common.pts')}</span>
                   </div>
                 </motion.div>
               ))}
@@ -216,7 +219,7 @@ export default function LeaderboardPhase({ gameState, questions }) {
         )}
 
         {players.length === 0 && (
-          <p className="text-center text-white/30 text-lg mt-4">No players yet</p>
+          <p className="text-center text-white/30 text-lg mt-4">{t('host.noPlayers')}</p>
         )}
 
         <p className="text-center text-white/30 text-sm font-medium mt-4">deadtechguy.fun</p>

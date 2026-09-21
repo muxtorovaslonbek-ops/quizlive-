@@ -11,6 +11,7 @@ import {
   LabelList,
 } from 'recharts';
 import { subscribeToQuestionAnswers, subscribeToAnswerKey } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
@@ -44,6 +45,7 @@ function CountChip({ x, y, width, height, value }) {
 }
 
 export default function ResultsPhase({ question, questionIndex, totalQuestions }) {
+  const { t } = useI18n();
   const [answers,   setAnswers]   = useState([]);
   const [correctIdx, setCorrectIdx] = useState(null);
 
@@ -76,11 +78,11 @@ export default function ResultsPhase({ question, questionIndex, totalQuestions }
       <div className="flex items-center justify-between mb-6">
         <div className="glass rounded-xl px-4 py-2">
           <span className="text-brand-300 text-sm font-semibold">
-            Question {questionIndex + 1} / {totalQuestions} — Results
+            {t('host.resultsOf', { n: questionIndex + 1, total: totalQuestions })}
           </span>
         </div>
         <div className="glass rounded-xl px-4 py-2">
-          <span className="text-white text-sm font-semibold">{answers.length} responses</span>
+          <span className="text-white text-sm font-semibold">{t('host.responses', { n: answers.length })}</span>
         </div>
       </div>
 
@@ -130,7 +132,7 @@ export default function ResultsPhase({ question, questionIndex, totalQuestions }
                 borderRadius: 12,
                 color: 'white',
               }}
-              formatter={(val, name, props) => [`${val} votes`, props.payload.correct ? '✅ Correct' : '❌ Wrong']}
+              formatter={(val, name, props) => [t('host.votes', { n: val }), props.payload.correct ? t('host.correct') : t('host.wrong')]}
               labelStyle={{ color: '#a78bfa' }}
             />
             <Bar dataKey="count" radius={[0, 8, 8, 0]} isAnimationActive animationDuration={800}>

@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { subscribeToPlayers } from '../../firebase/db';
 import Particles from '../shared/Particles';
 import { EASE_OUT } from '../../lib/motion';
+import { useI18n } from '../../i18n/LanguageContext';
 
 const MEDAL = ['🥇', '🥈', '🥉'];
 
 export default function EndedPhase() {
+  const { t } = useI18n();
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export default function EndedPhase() {
         className="relative z-10 text-center"
       >
         <div className="text-8xl mb-4">🏆</div>
-        <h1 className="text-7xl font-black gradient-text mb-2">Quiz Over!</h1>
-        <p className="text-brand-300 text-2xl mb-12">Thanks everyone for playing!</p>
+        <h1 className="text-7xl font-black gradient-text mb-2">{t('host.endedTitle')}</h1>
+        <p className="text-brand-300 text-2xl mb-12">{t('host.endedThanks')}</p>
 
         <div className="flex justify-center items-end gap-6">
           {[
@@ -50,7 +52,7 @@ export default function EndedPhase() {
                 {rank === 0 && <span className="absolute -top-10 text-5xl">👑</span>}
                 <span className="text-3xl">{MEDAL[rank]}</span>
                 <p className="text-white font-black text-sm mt-1 truncate px-2">{p.name}</p>
-                <p className="text-brand-300 font-bold text-xs">{p.score} pts</p>
+                <p className="text-brand-300 font-bold text-xs">{p.score} {t('common.pts')}</p>
               </motion.div>
             );
           })}

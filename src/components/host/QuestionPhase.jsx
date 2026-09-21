@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Timer from '../shared/Timer';
 import { subscribeToQuestionAnswers } from '../../firebase/db';
+import { serverNow } from '../../lib/serverClock';
+import { useI18n } from '../../i18n/LanguageContext';
 
 const OPTION_STYLES = [
   { bg: 'bg-violet-600/80',  border: 'border-violet-400', label: 'A', icon: '▲' },
@@ -16,6 +18,7 @@ export default function QuestionPhase({
   questionIndex,
   totalQuestions,
 }) {
+  const { t } = useI18n();
   const [timeLeft,     setTimeLeft]     = useState(question.timer ?? 15);
   const [answerCount,  setAnswerCount]  = useState(0);
 
@@ -37,8 +40,9 @@ export default function QuestionPhase({
       (gameState.questionStartTime?.seconds ?? 0) * 1000;
 
     const tick = () => {
-      const elapsed   = (Date.now() - startMs) / 1000;
-      const remaining = Math.max(0, (question.timer ?? 15) - elapsed);
+      const total     = question.timer ?? 15;
+      const elapsed   = (serverNow() - startMs) / 1000;
+      const remaining = Math.min(total, Math.max(0, total - elapsed));
       setTimeLeft(remaining);
     };
 
@@ -53,7 +57,7 @@ export default function QuestionPhase({
       <div className="flex items-center justify-between mb-6">
         <div className="glass rounded-xl px-4 py-2">
           <span className="text-brand-300 text-sm font-semibold">
-            Question {questionIndex + 1} / {totalQuestions}
+            {t('host.questionOf', { n: questionIndex + 1, total: totalQuestions })}
           </span>
         </div>
 
@@ -65,7 +69,7 @@ export default function QuestionPhase({
           className="glass rounded-xl px-4 py-2 flex items-center gap-2"
         >
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white text-sm font-semibold">{answerCount} answered</span>
+          <span className="text-white text-sm font-semibold">{t('host.answered', { n: answerCount })}</span>
         </motion.div>
 
         {/* Timer */}
