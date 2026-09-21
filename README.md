@@ -218,3 +218,16 @@ This release was built with [Claude Code](https://claude.com/claude-code) using 
 ---
 
 <sub>**Topics:** quiz · trivia · kahoot-alternative · slido-alternative · mentimeter-alternative · open-source-quiz · self-hosted · real-time · multiplayer · classroom · live-polling · audience-response · firebase · react · vite · tailwindcss · free-quiz-app · no-subscription</sub>
+
+---
+
+## 🌐 Languages
+
+QuizLive ships with **English** and **Uzbek (O'zbekcha, Latin)**. A small `EN | UZ` switch appears on the join screen, lobby, host waiting screen, admin header and login page. The choice is remembered per browser.
+
+- All text lives in [`src/i18n/translations.js`](src/i18n/translations.js).
+- Default language: change `DEFAULT_LANG` in that file (`'uz'` or `'en'`).
+- Add a language: copy the `en` block, translate it, and register it in `LANGUAGES` + `translations`.
+- Check nothing is missing: `node scripts/check-i18n.mjs`
+
+Question texts, answer options and player names are user content and are shown exactly as entered.
