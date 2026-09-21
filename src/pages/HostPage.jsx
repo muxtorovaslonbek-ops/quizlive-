@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import useGameState from '../hooks/useGameState';
 import { subscribeToQuestions } from '../firebase/db';
 import { pageFade } from '../lib/motion';
+import { useI18n } from '../i18n/LanguageContext';
 import WaitingScreen    from '../components/host/WaitingScreen';
 import QuestionPhase    from '../components/host/QuestionPhase';
 import ResultsPhase     from '../components/host/ResultsPhase';
@@ -15,6 +16,7 @@ import ErrorScreen      from '../components/shared/ErrorScreen';
 // HostPage is read-only — pure projector display.
 // Auto-advance lives in AdminPage so meta writes stay admin-authenticated.
 export default function HostPage() {
+  const { t } = useI18n();
   const { gameState, loading, error } = useGameState();
   const [questions, setQuestions] = useState([]);
 
@@ -39,7 +41,7 @@ export default function HostPage() {
       {/* Join URL — fixed bottom bar, always visible on all host screens */}
       <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center
                       gap-2 py-2 bg-black/30 backdrop-blur-sm border-t border-white/5 pointer-events-none">
-        <span className="text-white/30 text-sm">Join at</span>
+        <span className="text-white/30 text-sm">{t('host.joinAt')}</span>
         <span className="text-brand-300 text-sm font-bold">
           {joinUrl.replace(/^https?:\/\//, '')}
         </span>
@@ -64,7 +66,7 @@ export default function HostPage() {
               fgColor="#ffffff"
               level="M"
             />
-            <span className="text-white/50 text-sm">Scan to join</span>
+            <span className="text-white/50 text-sm">{t('host.scanToJoin')}</span>
           </motion.div>
         )}
       </AnimatePresence>

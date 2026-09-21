@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
+import { serverNow, useClockReady } from '../lib/serverClock';
 import useGameState    from '../hooks/useGameState';
 import {
   subscribeToQuestions,
@@ -18,15 +19,18 @@ import HostControl     from '../components/admin/HostControl';
 import SessionHistory  from '../components/admin/SessionHistory';
 import LoadingSpinner  from '../components/shared/LoadingSpinner';
 import ErrorScreen     from '../components/shared/ErrorScreen';
+import { useI18n } from '../i18n/LanguageContext';
+import LanguageSwitcher from '../i18n/LanguageSwitcher';
 
 const TABS = [
-  { id: 'questions', label: '📝 Questions' },
-  { id: 'game',      label: '🎮 Game Control' },
-  { id: 'host',      label: '🖥 Host / QR' },
-  { id: 'history',   label: '📋 History' },
+  { id: 'questions', labelKey: 'admin.tab.questions' },
+  { id: 'game',      labelKey: 'admin.tab.game' },
+  { id: 'host',      labelKey: 'admin.tab.host' },
+  { id: 'history',   labelKey: 'admin.tab.history' },
 ];
 
 function AboutCorner() {
+  const { t } = useI18n();
   return (
     <a
       href="/about"
@@ -40,13 +44,15 @@ function AboutCorner() {
         className="w-7 h-7 rounded-full object-cover opacity-20 group-hover:opacity-50 transition-opacity"
       />
       <span className="text-white/20 group-hover:text-white/50 transition-colors text-xs">
-        About
+        {t('admin.about')}
       </span>
     </a>
   );
 }
 
 export default function AdminPage() {
+  const { t } = useI18n();
+  const clockReady = useClockReady();
   const [authed,      setAuthed]      = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [tab,         setTab]         = useState('game');
@@ -104,7 +110,7 @@ export default function AdminPage() {
   // Transaction inside advanceToResults makes this multi-tab safe.
   useEffect(() => {
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
-    if (!authed || !gameState || gameState.phase !== 'question') return;
+    if (!authed || !clockReady || !gameState || gameState.phase !== 'question') return;
     if (!gameState.questionStartTime) return;
     const currentQ = questions[gameState.currentQuestionIndex];
     if (!currentQ) return;
@@ -112,7 +118,7 @@ export default function AdminPage() {
     const startMs =
       gameState.questionStartTime?.toMillis?.() ??
       (gameState.questionStartTime?.seconds ?? 0) * 1000;
-    const elapsed   = (Date.now() - startMs) / 1000;
+    const elapsed   = (serverNow() - startMs) / 1000;
     const remaining = Math.max(0, (currentQ.timer ?? 15) - elapsed);
 
     advanceTimerRef.current = setTimeout(() => {
@@ -122,6 +128,7 @@ export default function AdminPage() {
     return () => clearTimeout(advanceTimerRef.current);
   }, [
     authed,
+    clockReady,
     gameState?.phase,
     gameState?.currentQuestionIndex,
     gameState?.questionStartTime?.seconds,
@@ -140,36 +147,37 @@ export default function AdminPage() {
         <div className="flex items-center gap-3">
           <img src="/logo.svg" alt="QuizLive" className="w-8 h-8" />
           <div>
-            <h1 className="font-black text-white leading-none">Admin Panel</h1>
+            <h1 className="font-black text-white leading-none">{t('admin.title')}</h1>
             <p className="text-brand-300 text-xs">{gameState?.title ?? 'QuizLive'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           <div className="glass rounded-xl px-3 py-1.5 text-xs text-white/60">
-            {players.length} player{players.length !== 1 ? 's' : ''} · {questions.length} Q
+            {t('admin.counts', { players: players.length, questions: questions.length })}
           </div>
           <button
             onClick={() => signOut(auth)}
             className="text-xs text-white/30 hover:text-white/60 transition-colors"
           >
-            Logout
+            {t('admin.logout')}
           </button>
         </div>
       </header>
 
       {/* Tab bar */}
       <div className="sticky top-[65px] z-30 glass border-b border-white/10 px-4 flex gap-1 py-2">
-        {TABS.map((t) => (
+        {TABS.map((item) => (
           <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
+            key={item.id}
+            onClick={() => setTab(item.id)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all
-              ${tab === t.id
+              ${tab === item.id
                 ? 'bg-brand-600 text-white shadow-lg'
                 : 'text-white/50 hover:text-white hover:bg-white/10'
               }`}
           >
-            {t.label}
+            {t(item.labelKey)}
           </button>
         ))}
       </div>
@@ -178,7 +186,7 @@ export default function AdminPage() {
       {migration?.count > 0 && (
         <div className="px-4 py-2 text-xs text-center font-semibold
                         bg-green-500/20 text-green-300 border-b border-green-500/40">
-          ✓ Set up {migration.count} answer key{migration.count !== 1 ? 's' : ''}
+          {t('admin.migrated', { n: migration.count })}
           <button
             onClick={() => setMigration(null)}
             className="ml-3 text-white/40 hover:text-white"
