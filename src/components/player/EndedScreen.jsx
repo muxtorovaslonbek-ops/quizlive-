@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { subscribeToPlayers, getPlayerRank } from '../../firebase/db';
 import Particles from '../shared/Particles';
+import { useI18n } from '../../i18n/LanguageContext';
 
 export default function EndedScreen({ playerId, playerName }) {
+  const { t } = useI18n();
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
@@ -28,16 +30,16 @@ export default function EndedScreen({ playerId, playerName }) {
         <div className="text-6xl mb-4">
           {isWinner ? '🏆' : myRank <= 3 ? '🎉' : '👏'}
         </div>
-        <h2 className="text-2xl font-black gradient-text mb-1">Quiz Over!</h2>
-        <p className="text-white/50 text-sm mb-6">Thanks for playing, {playerName}!</p>
+        <h2 className="text-2xl font-black gradient-text mb-1">{t('end.title')}</h2>
+        <p className="text-white/50 text-sm mb-6">{t('end.thanks', { name: playerName })}</p>
 
         <div className="space-y-3">
           <div className="glass rounded-xl p-3">
-            <p className="text-xs text-brand-300 uppercase tracking-wider">Final Rank</p>
+            <p className="text-xs text-brand-300 uppercase tracking-wider">{t('end.finalRank')}</p>
             <p className="text-3xl font-black text-white">#{myRank || '—'}</p>
           </div>
           <div className="glass rounded-xl p-3">
-            <p className="text-xs text-brand-300 uppercase tracking-wider">Total Score</p>
+            <p className="text-xs text-brand-300 uppercase tracking-wider">{t('end.totalScore')}</p>
             <p className="text-3xl font-black gradient-text">{myScore}</p>
           </div>
         </div>
@@ -48,7 +50,7 @@ export default function EndedScreen({ playerId, playerName }) {
             transition={{ duration: 1, repeat: Infinity }}
             className="mt-4 text-yellow-300 font-black text-lg"
           >
-            👑 You won!
+            {t('end.won')}
           </motion.p>
         )}
       </motion.div>
@@ -59,7 +61,7 @@ export default function EndedScreen({ playerId, playerName }) {
         rel="noopener noreferrer"
         className="fixed bottom-4 left-0 right-0 text-center text-white/20 text-xs hover:text-white/40 transition-colors"
       >
-        Built by DeadTechGuy
+        {t('common.builtBy')}
       </a>
     </div>
   );

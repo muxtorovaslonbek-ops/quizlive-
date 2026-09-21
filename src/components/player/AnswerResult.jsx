@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { subscribeToPlayerAnswer, subscribeToAnswerKey, calcScore } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
 export default function AnswerResult({ question, playerId }) {
+  const { t } = useI18n();
   const [result,    setResult]    = useState(null);
   const [loading,   setLoading]   = useState(true);
   const [answerKey, setAnswerKey] = useState(null);
@@ -19,8 +21,8 @@ export default function AnswerResult({ question, playerId }) {
       }
     });
     // Give up showing spinner after 4s — assume no answer was submitted.
-    const t = setTimeout(() => { if (!settled) setLoading(false); }, 4000);
-    return () => { unsub(); clearTimeout(t); };
+    const timer = setTimeout(() => { if (!settled) setLoading(false); }, 4000);
+    return () => { unsub(); clearTimeout(timer); };
   }, [question.id, playerId]);
 
   // correctAnswer lives in /answerKeys/{id}, only readable in results phase.
@@ -73,11 +75,11 @@ export default function AnswerResult({ question, playerId }) {
       >
         <p className={`text-3xl font-black
           ${!didAnswer ? 'text-gray-400' : isCorrect ? 'text-green-400' : 'text-red-400'}`}>
-          {!didAnswer ? "Time's up!" : isCorrect ? 'Correct!' : 'Wrong!'}
+          {!didAnswer ? t('result.timesUp') : isCorrect ? t('result.correct') : t('result.wrong')}
         </p>
         {didAnswer && (
           <p className="text-white/40 text-sm mt-1">
-            +{score} pts
+            {t('result.points', { n: score })}
           </p>
         )}
       </motion.div>
@@ -117,7 +119,7 @@ export default function AnswerResult({ question, playerId }) {
             <span className="text-white text-sm font-semibold flex-1">
               {question.options[correct]}
             </span>
-            <span className="text-green-400 text-xs font-bold">Correct</span>
+            <span className="text-green-400 text-xs font-bold">{t('result.correctBadge')}</span>
           </div>
         )}
       </motion.div>
@@ -128,7 +130,7 @@ export default function AnswerResult({ question, playerId }) {
         transition={{ delay: 0.5 }}
         className="text-white/30 text-xs"
       >
-        Leaderboard coming up…
+        {t('result.leaderboardSoon')}
       </motion.p>
     </div>
   );

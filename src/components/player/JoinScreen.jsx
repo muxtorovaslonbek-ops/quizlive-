@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useI18n } from '../../i18n/LanguageContext';
+import LanguageSwitcher from '../../i18n/LanguageSwitcher';
 
 export default function JoinScreen({ onJoin, joining, error, suggested, onClearSuggested, gameTitle = 'QuizLive' }) {
+  const { t } = useI18n();
   const [name, setName] = useState('');
 
   // When a suggestion comes in, pre-fill the input
@@ -19,6 +22,8 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
   return (
     <div className="fixed inset-0 overflow-hidden flex flex-col items-center justify-center px-6
                     bg-gradient-to-br from-[#0f0a1e] via-[#1a0a2e] to-[#0a1628]">
+      <LanguageSwitcher className="absolute top-4 right-4 z-20" />
+
       {/* Background orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-brand-700/20 rounded-full blur-3xl" />
@@ -41,13 +46,13 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
             <img src="/logo.svg" alt="QuizLive" className="w-14 h-14 mx-auto" />
           </motion.div>
           <h1 className="text-2xl font-black gradient-text">{gameTitle}</h1>
-          <p className="text-brand-300 mt-1 text-sm">Enter your name to join</p>
+          <p className="text-brand-300 mt-1 text-sm">{t('join.subtitle')}</p>
         </div>
 
         <form onSubmit={submit} className="glass rounded-2xl p-6 space-y-4">
           <div>
             <label className="block text-xs font-semibold text-brand-300 mb-2 uppercase tracking-wider">
-              Your Name
+              {t('join.yourName')}
             </label>
             <input
               type="text"
@@ -56,7 +61,7 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
                 setName(e.target.value);
                 if (suggested) onClearSuggested();
               }}
-              placeholder="e.g. Alex 🚀"
+              placeholder={t('join.placeholder')}
               maxLength={20}
               autoFocus
               className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white
@@ -75,10 +80,10 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
                 className="glass rounded-xl px-4 py-3 border border-amber-500/30"
               >
                 <p className="text-amber-300 text-xs font-semibold">
-                  That name is taken.
+                  {t('join.taken')}
                 </p>
                 <p className="text-white/60 text-xs mt-0.5">
-                  Joining as <span className="text-white font-bold">"{suggested}"</span> — edit above if you want a different name.
+                  {t('join.joiningAs')} <span className="text-white font-bold">"{suggested}"</span>{t('join.editHint')}
                 </p>
               </motion.div>
             )}
@@ -90,7 +95,7 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
                 animate={{ opacity: 1 }}
                 className="text-red-400/80 text-xs"
               >
-                {error}
+                {t(`join.err.${error}`)}
               </motion.p>
             )}
           </AnimatePresence>
@@ -108,14 +113,14 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
             {joining ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                Joining…
+                {t('join.joining')}
               </span>
-            ) : isTaken ? `Join as "${name}" →` : 'Join Game →'}
+            ) : isTaken ? t('join.joinAs', { name }) : t('join.joinGame')}
           </motion.button>
         </form>
 
         <p className="text-center text-white/20 text-xs mt-4">
-          Min 2 characters · Max 20 characters
+          {t('join.limits')}
         </p>
       </motion.div>
 
@@ -125,7 +130,7 @@ export default function JoinScreen({ onJoin, joining, error, suggested, onClearS
         rel="noopener noreferrer"
         className="fixed bottom-4 left-0 right-0 text-center text-white/20 text-xs hover:text-white/40 transition-colors"
       >
-        Built by DeadTechGuy
+        {t('common.builtBy')}
       </a>
     </div>
   );

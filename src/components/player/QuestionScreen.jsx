@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { submitAnswer } from '../../firebase/db';
+import { serverNow } from '../../lib/serverClock';
+import { useI18n } from '../../i18n/LanguageContext';
 
 const OPTION_STYLES = [
   { bg: 'from-violet-600 to-purple-700', border: 'border-violet-400', label: 'A' },
@@ -10,19 +12,18 @@ const OPTION_STYLES = [
 ];
 
 export default function QuestionScreen({ question, playerId, questionStartTime, questionIndex, totalQuestions }) {
+  const { t } = useI18n();
   const totalTime   = question.timer ?? 15;
   const [timeLeft,  setTimeLeft]  = useState(totalTime);
   const [selected,  setSelected]  = useState(null);
   const [submitting,setSubmitting]= useState(false);
   const [expired,   setExpired]   = useState(false);
-  const expiredRef  = useRef(false);
 
   // Reset on new question
   useEffect(() => {
     setTimeLeft(totalTime);
     setSelected(null);
     setExpired(false);
-    expiredRef.current = false;
   }, [question.id, totalTime]);
 
   // Countdown synced to server timestamp
@@ -33,13 +34,11 @@ export default function QuestionScreen({ question, playerId, questionStartTime, 
       (questionStartTime?.seconds ?? 0) * 1000;
 
     const tick = () => {
-      const elapsed   = (Date.now() - startMs) / 1000;
-      const remaining = Math.max(0, totalTime - elapsed);
+      const elapsed   = (serverNow() - startMs) / 1000;
+      const remaining = Math.min(totalTime, Math.max(0, totalTime - elapsed));
       setTimeLeft(remaining);
-      if (remaining <= 0 && !expiredRef.current) {
-        expiredRef.current = true;
-        setExpired(true);
-      }
+      // Not latched: if the clock correction arrives a moment later, this flips back.
+      setExpired(remaining <= 0);
     };
     tick();
     const id = setInterval(tick, 80);
@@ -54,7 +53,7 @@ export default function QuestionScreen({ question, playerId, questionStartTime, 
     const startMs =
       questionStartTime?.toMillis?.() ??
       (questionStartTime?.seconds ?? 0) * 1000;
-    const timeTaken = Math.max(0, (Date.now() - startMs) / 1000);
+    const timeTaken = Math.max(0, (serverNow() - startMs) / 1000);
 
     try {
       await submitAnswer({
@@ -93,12 +92,12 @@ export default function QuestionScreen({ question, playerId, questionStartTime, 
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-white/30 text-xs font-semibold tabular-nums">
-              {questionIndex != null ? `Q ${questionIndex + 1} / ${totalQuestions}` : ''}
+              {questionIndex != null ? t('q.label', { n: questionIndex + 1, total: totalQuestions }) : ''}
             </span>
             <span className="text-brand-300 text-sm font-semibold">
               {expired
-                ? selected !== null ? '🔒 Locked in' : '⏰ Time\'s up'
-                : selected !== null ? 'Answer selected' : 'Pick your answer'}
+                ? selected !== null ? t('q.locked') : t('q.timesUp')
+                : selected !== null ? t('q.selected') : t('q.pick')}
             </span>
           </div>
           <motion.div
@@ -108,7 +107,7 @@ export default function QuestionScreen({ question, playerId, questionStartTime, 
             className="text-2xl font-black tabular-nums px-4 py-1 rounded-xl glass"
             style={{ color: barColor }}
           >
-            {Math.ceil(timeLeft)}s
+            {t('q.seconds', { n: Math.ceil(timeLeft) })}
           </motion.div>
         </div>
 
@@ -174,7 +173,7 @@ export default function QuestionScreen({ question, playerId, questionStartTime, 
               className="text-center rounded-xl p-3 bg-red-500/20 border
                          border-red-500/30 text-red-300 font-bold text-sm"
             >
-              ⏰ No answer submitted
+              {t('q.noAnswer')}
             </motion.div>
           )}
           {expired && selected !== null && (
@@ -184,7 +183,7 @@ export default function QuestionScreen({ question, playerId, questionStartTime, 
               animate={{ opacity: 1 }}
               className="text-center rounded-xl p-3 glass text-white/50 text-sm font-medium"
             >
-              Answer locked in — watch the screen!
+              {t('q.lockedWatch')}
             </motion.div>
           )}
         </AnimatePresence>
