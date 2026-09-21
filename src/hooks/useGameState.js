@@ -7,7 +7,7 @@ export default function useGameState() {
   const [error, setError]         = useState(null);
 
   useEffect(() => {
-    initGameState().catch((e) => setError(e.message || 'Failed to initialize game'));
+    initGameState().catch((e) => setError(e.message || 'INIT_FAILED'));
 
     // onSnapshot signature: (snapshot, error) — second arg fires on listener errors
     // (permission denied, quota exceeded, network drop with no recovery).
@@ -16,7 +16,7 @@ export default function useGameState() {
       setError(null);
       setLoading(false);
     }, (err) => {
-      setError(err?.message || 'Connection lost');
+      setError(err?.message || 'CONNECTION_LOST');
       setLoading(false);
     });
 

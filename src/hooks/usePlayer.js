@@ -44,7 +44,7 @@ export default function usePlayer() {
   const join = async (name) => {
     const trimmed = name.trim();
     if (trimmed.length < 2 || trimmed.length > 20) {
-      setError('Name must be 2–20 characters.');
+      setError('invalid_name');
       return;
     }
     setJoining(true);
@@ -61,9 +61,9 @@ export default function usePlayer() {
         setSuggested(e.suggested);
         setError('name_taken');
       } else if (e.message === 'INVALID_NAME') {
-        setError('Name must be 2–20 characters.');
+        setError('invalid_name');
       } else {
-        setError('Could not join. Try again.');
+        setError('join_failed');
       }
     } finally {
       setJoining(false);
