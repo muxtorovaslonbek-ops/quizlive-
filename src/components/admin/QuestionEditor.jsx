@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { addQuestion, updateQuestion, deleteQuestion, reorderQuestions } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
 const BLANK = {
   text:          '',
@@ -9,6 +10,7 @@ const BLANK = {
 };
 
 function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
+  const { t } = useI18n();
   const [q, setQ] = useState({ ...BLANK, ...initial });
   const optionRefs = useRef([]);
 
@@ -46,13 +48,13 @@ function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
   return (
     <div className="glass-strong rounded-2xl p-5 space-y-4">
       <div>
-        <label className="label">Question Text</label>
+        <label className="label">{t('editor.text')}</label>
         <textarea
           value={q.text}
           onChange={(e) => setQ({ ...q, text: e.target.value })}
           onKeyDown={handleTextKeyDown}
           rows={2}
-          placeholder="What is the capital of France? (Enter → next field, Shift+Enter → new line)"
+          placeholder={t('editor.textPlaceholder')}
           className="input resize-none"
         />
       </div>
@@ -61,9 +63,9 @@ function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
         {q.options.map((opt, i) => (
           <div key={i}>
             <label className="label">
-              Option {String.fromCharCode(65 + i)}
+              {t('editor.option', { l: String.fromCharCode(65 + i) })}
               {i === q.correctAnswer && (
-                <span className="ml-2 text-green-400 text-xs font-bold">✓ Correct</span>
+                <span className="ml-2 text-green-400 text-xs font-bold">{t('editor.correct')}</span>
               )}
             </label>
             <div className="flex gap-2">
@@ -73,13 +75,13 @@ function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
                 value={opt}
                 onChange={(e) => setOption(i, e.target.value)}
                 onKeyDown={handleOptionKeyDown(i)}
-                placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                placeholder={t('editor.option', { l: String.fromCharCode(65 + i) })}
                 className="input flex-1"
               />
               <button
                 type="button"
                 onClick={() => setQ({ ...q, correctAnswer: i })}
-                title="Mark as correct"
+                title={t('editor.markCorrect')}
                 className={`px-3 rounded-xl border transition-all font-bold text-sm
                   ${i === q.correctAnswer
                     ? 'bg-green-500/30 border-green-500 text-green-300'
@@ -95,7 +97,7 @@ function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
 
       <div className="flex items-end gap-4">
         <div>
-          <label className="label">Timer (seconds)</label>
+          <label className="label">{t('editor.timer')}</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -105,23 +107,23 @@ function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
               onChange={(e) => setQ({ ...q, timer: Number(e.target.value) })}
               className="input w-24"
             />
-            <span className="text-white/30 text-xs">5–120s</span>
+            <span className="text-white/30 text-xs">{t('editor.timerRange')}</span>
           </div>
         </div>
 
         <div className="flex gap-1 pb-0.5">
-          {[10, 15, 20, 30].map((t) => (
+          {[10, 15, 20, 30].map((sec) => (
             <button
-              key={t}
+              key={sec}
               type="button"
-              onClick={() => setQ({ ...q, timer: t })}
+              onClick={() => setQ({ ...q, timer: sec })}
               className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all
-                ${q.timer === t
+                ${q.timer === sec
                   ? 'bg-brand-600 text-white'
                   : 'bg-white/10 text-white/50 hover:bg-white/20'
                 }`}
             >
-              {t}s
+              {sec}s
             </button>
           ))}
         </div>
@@ -133,15 +135,16 @@ function QuestionForm({ initial = BLANK, onSave, onCancel, saving }) {
           disabled={!valid || saving}
           className="btn-primary"
         >
-          {saving ? 'Saving…' : 'Save Question'}
+          {saving ? t('editor.saving') : t('editor.save')}
         </button>
-        <button onClick={onCancel} className="btn-ghost">Cancel</button>
+        <button onClick={onCancel} className="btn-ghost">{t('editor.cancel')}</button>
       </div>
     </div>
   );
 }
 
 export default function QuestionEditor({ questions }) {
+  const { t } = useI18n();
   const [editing,    setEditing]    = useState(null);
   const [saving,     setSaving]     = useState(false);
   const [deleting,   setDeleting]   = useState(null);
@@ -157,7 +160,7 @@ export default function QuestionEditor({ questions }) {
       setEditing(null);
     } catch (err) {
       console.error('Save question failed:', err);
-      alert(`Couldn't save question: ${err.message ?? err}`);
+      alert(t('editor.saveFailed', { err: err.message ?? err }));
     } finally { setSaving(false); }
   };
 
@@ -177,7 +180,7 @@ export default function QuestionEditor({ questions }) {
       await deleteQuestion(id);
     } catch (err) {
       console.error('Delete question failed:', err);
-      alert(`Couldn't delete question: ${err.code || err.message || err}`);
+      alert(t('editor.deleteFailed', { err: err.code || err.message || err }));
     } finally {
       setDeleting(null);
     }
@@ -207,7 +210,7 @@ export default function QuestionEditor({ questions }) {
                      text-brand-400 font-semibold hover:border-brand-400 hover:text-brand-300
                      transition-all flex items-center justify-center gap-2"
         >
-          + Add Question
+          {t('editor.add')}
         </button>
       )}
 
@@ -220,11 +223,11 @@ export default function QuestionEditor({ questions }) {
       )}
 
       {questions.length === 0 && (
-        <p className="text-center text-white/30 py-8">No questions yet. Add one above.</p>
+        <p className="text-center text-white/30 py-8">{t('editor.none')}</p>
       )}
 
       {questions.length > 1 && (
-        <p className="text-white/20 text-xs text-center">Drag ⠿ to reorder</p>
+        <p className="text-white/20 text-xs text-center">{t('editor.dragHint')}</p>
       )}
 
       <div className="space-y-3">
@@ -274,7 +277,7 @@ export default function QuestionEditor({ questions }) {
                       </span>
                     ))}
                   </div>
-                  <p className="text-white/30 text-xs mt-1.5">⏱ {q.timer ?? 15}s · max 30 pts</p>
+                  <p className="text-white/30 text-xs mt-1.5">{t('editor.meta', { n: q.timer ?? 15 })}</p>
                 </div>
 
                 <div className="flex gap-2 shrink-0">
@@ -282,7 +285,7 @@ export default function QuestionEditor({ questions }) {
                     onClick={() => setEditing(q.id)}
                     className="btn-ghost text-xs py-1 px-3"
                   >
-                    Edit
+                    {t('editor.edit')}
                   </button>
                   <button
                     onClick={() => handleDelete(q.id)}
@@ -293,7 +296,7 @@ export default function QuestionEditor({ questions }) {
                         : 'glass border-red-500/20 text-red-400 hover:text-red-300 hover:border-red-400/40'
                       }`}
                   >
-                    {deleting === q.id ? '…' : confirmDel === q.id ? 'Confirm?' : 'Delete'}
+                    {deleting === q.id ? '…' : confirmDel === q.id ? t('editor.confirm') : t('editor.delete')}
                   </button>
                 </div>
               </div>

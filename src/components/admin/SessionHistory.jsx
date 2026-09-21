@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { subscribeToSessions } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
-function formatDate(ts) {
+// undefined = browser default (English UI); Uzbek UI asks for the uz locale.
+const LOCALES = { en: undefined, uz: 'uz-UZ' };
+
+function formatDate(ts, lang) {
   if (!ts) return '—';
   const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
-  return d.toLocaleString(undefined, {
+  return d.toLocaleString(LOCALES[lang], {
     dateStyle: 'medium',
     timeStyle: 'short',
   });
 }
 
-function duration(start, end) {
+function duration(start, end, t) {
   if (!start || !end) return null;
   const s = start.toDate ? start.toDate() : new Date(start.seconds * 1000);
   const e = end.toDate   ? end.toDate()   : new Date(end.seconds   * 1000);
   const mins = Math.round((e - s) / 60000);
-  return `${mins} min`;
+  return t('history.minutes', { n: mins });
 }
 
 // Escape a value for CSV: quote-wrap, double internal quotes,
@@ -28,9 +32,9 @@ function csvEscape(val) {
   return `"${safe.replace(/"/g, '""')}"`;
 }
 
-function downloadCSV(session) {
+function downloadCSV(session, t, lang) {
   const rows = [
-    ['Rank', 'Name', 'Score'],
+    [t('history.csvRank'), t('history.csvName'), t('history.csvScore')],
     ...session.players.map((p) => [p.rank, p.name, p.score]),
   ];
   const csv  = rows.map((r) => r.map(csvEscape).join(',')).join('\r\n');
@@ -39,7 +43,7 @@ function downloadCSV(session) {
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = `${session.title}-${formatDate(session.endedAt)}.csv`.replace(/[^a-z0-9.\-]/gi, '_');
+  a.download = `${session.title}-${formatDate(session.endedAt, lang)}.csv`.replace(/[^a-z0-9.\-]/gi, '_');
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -47,6 +51,7 @@ function downloadCSV(session) {
 const MEDAL = ['🥇', '🥈', '🥉'];
 
 function SessionCard({ session }) {
+  const { t, lang } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const top3 = session.players.slice(0, 3);
   const rest = session.players.slice(3);
@@ -57,13 +62,15 @@ function SessionCard({ session }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-white font-black text-base leading-none">{session.title}</p>
-          <p className="text-white/30 text-xs mt-1">{formatDate(session.endedAt)}</p>
-          {duration(session.startedAt, session.endedAt) && (
-            <p className="text-white/20 text-xs">Duration: {duration(session.startedAt, session.endedAt)}</p>
+          <p className="text-white/30 text-xs mt-1">{formatDate(session.endedAt, lang)}</p>
+          {duration(session.startedAt, session.endedAt, t) && (
+            <p className="text-white/20 text-xs">
+              {t('history.duration', { d: duration(session.startedAt, session.endedAt, t) })}
+            </p>
           )}
         </div>
         <button
-          onClick={() => downloadCSV(session)}
+          onClick={() => downloadCSV(session, t, lang)}
           className="text-xs text-white/30 hover:text-white/60 transition-colors glass
                      border border-white/10 rounded-lg px-3 py-1.5 shrink-0"
         >
@@ -84,7 +91,7 @@ function SessionCard({ session }) {
           </div>
         ))}
         {top3.length === 0 && (
-          <p className="text-white/20 text-xs">No players recorded</p>
+          <p className="text-white/20 text-xs">{t('history.noPlayers')}</p>
         )}
       </div>
 
@@ -95,7 +102,7 @@ function SessionCard({ session }) {
             onClick={() => setExpanded((v) => !v)}
             className="text-xs text-brand-400 hover:text-brand-300 transition-colors font-semibold"
           >
-            {expanded ? '▲ Show less' : `▼ Show all ${session.players.length} players`}
+            {expanded ? t('history.showLess') : t('history.showAll', { n: session.players.length })}
           </button>
 
           <AnimatePresence>
@@ -127,6 +134,7 @@ function SessionCard({ session }) {
 }
 
 export default function SessionHistory() {
+  const { t } = useI18n();
   const [sessions, setSessions] = useState([]);
 
   useEffect(() => {
@@ -138,7 +146,7 @@ export default function SessionHistory() {
     <div className="space-y-4">
       {sessions.length === 0 && (
         <p className="text-center text-white/30 py-10 text-sm">
-          No sessions yet. Sessions are saved automatically when a quiz ends.
+          {t('history.empty')}
         </p>
       )}
       {sessions.map((s) => (

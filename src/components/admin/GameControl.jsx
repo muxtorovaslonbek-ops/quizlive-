@@ -8,16 +8,18 @@ import {
   resetGame,
   advanceToResults,
 } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
 const PHASE_LABELS = {
-  waiting:     { label: 'Waiting for players', color: 'text-blue-300',   dot: 'bg-blue-400' },
-  question:    { label: 'Question in progress', color: 'text-yellow-300', dot: 'bg-yellow-400' },
-  results:     { label: 'Showing results',      color: 'text-orange-300', dot: 'bg-orange-400' },
-  leaderboard: { label: 'Leaderboard',          color: 'text-green-300',  dot: 'bg-green-400' },
-  ended:       { label: 'Quiz ended',           color: 'text-red-300',    dot: 'bg-red-400' },
+  waiting:     { labelKey: 'game.phase.waiting',     color: 'text-blue-300',   dot: 'bg-blue-400' },
+  question:    { labelKey: 'game.phase.question',    color: 'text-yellow-300', dot: 'bg-yellow-400' },
+  results:     { labelKey: 'game.phase.results',     color: 'text-orange-300', dot: 'bg-orange-400' },
+  leaderboard: { labelKey: 'game.phase.leaderboard', color: 'text-green-300',  dot: 'bg-green-400' },
+  ended:       { labelKey: 'game.phase.ended',       color: 'text-red-300',    dot: 'bg-red-400' },
 };
 
 function ActionButton({ label, onClick, disabled, variant = 'primary', danger = false }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   const handle = async () => {
@@ -43,7 +45,7 @@ function ActionButton({ label, onClick, disabled, variant = 'primary', danger = 
       {loading ? (
         <span className="flex items-center justify-center gap-2">
           <span className="w-3 h-3 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-          Working…
+          {t('common.working')}
         </span>
       ) : label}
     </motion.button>
@@ -51,6 +53,7 @@ function ActionButton({ label, onClick, disabled, variant = 'primary', danger = 
 }
 
 export default function GameControl({ gameState, questions }) {
+  const { t } = useI18n();
   const phase    = gameState?.phase ?? 'waiting';
   const qIndex   = gameState?.currentQuestionIndex ?? 0;
   const total    = questions.length;
@@ -73,7 +76,7 @@ export default function GameControl({ gameState, questions }) {
       await resetGame();
     } catch (err) {
       console.error('Reset game failed:', err);
-      alert(`Couldn't reset game: ${err.code || err.message || err}`);
+      alert(t('game.resetFailed', { err: err.code || err.message || err }));
     }
   };
 
@@ -83,12 +86,12 @@ export default function GameControl({ gameState, questions }) {
       <div className="glass-strong rounded-2xl p-4">
         <div className="flex items-center gap-3 mb-3">
           <span className={`w-3 h-3 rounded-full ${phaseInfo.dot} animate-pulse`} />
-          <span className={`font-bold ${phaseInfo.color}`}>{phaseInfo.label}</span>
+          <span className={`font-bold ${phaseInfo.color}`}>{t(phaseInfo.labelKey)}</span>
         </div>
 
         {phase !== 'waiting' && phase !== 'ended' && (
           <div className="glass rounded-xl p-3">
-            <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Current Question</p>
+            <p className="text-xs text-white/40 uppercase tracking-wider mb-1">{t('game.currentQuestion')}</p>
             <p className="text-white font-semibold">
               {qIndex + 1} / {total}: {currentQ?.text ?? '—'}
             </p>
@@ -98,12 +101,12 @@ export default function GameControl({ gameState, questions }) {
 
       {/* Controls */}
       <div className="glass rounded-2xl p-4 space-y-3">
-        <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">Controls</p>
+        <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">{t('game.controls')}</p>
 
         {/* Waiting → Start */}
         {phase === 'waiting' && (
           <ActionButton
-            label={`🚀 Start Quiz (${total} question${total !== 1 ? 's' : ''})`}
+            label={t('game.start', { n: total })}
             disabled={total === 0}
             onClick={startQuiz}
           />
@@ -112,7 +115,7 @@ export default function GameControl({ gameState, questions }) {
         {/* Question phase controls */}
         {phase === 'question' && (
           <ActionButton
-            label="⏭ Skip to Results"
+            label={t('game.skip')}
             onClick={advanceToResults}
             variant="secondary"
           />
@@ -121,7 +124,7 @@ export default function GameControl({ gameState, questions }) {
         {/* Results → Leaderboard */}
         {phase === 'results' && (
           <ActionButton
-            label="📊 Show Leaderboard"
+            label={t('game.showLeaderboard')}
             onClick={advanceToLeaderboard}
           />
         )}
@@ -131,12 +134,12 @@ export default function GameControl({ gameState, questions }) {
           <>
             {!isLastQuestion && (
               <ActionButton
-                label={`▶ Next Question (${qIndex + 2} / ${total})`}
+                label={t('game.next', { a: qIndex + 2, b: total })}
                 onClick={() => nextQuestion(qIndex, total)}
               />
             )}
             <ActionButton
-              label={isLastQuestion ? '🏁 End Quiz' : '🏁 End Quiz Early'}
+              label={isLastQuestion ? t('game.end') : t('game.endEarly')}
               onClick={endQuiz}
               variant={isLastQuestion ? 'primary' : 'secondary'}
             />
@@ -145,17 +148,17 @@ export default function GameControl({ gameState, questions }) {
 
         {/* Ended */}
         {phase === 'ended' && (
-          <p className="text-center text-white/40 text-sm py-2">Quiz has ended. Reset to start again.</p>
+          <p className="text-center text-white/40 text-sm py-2">{t('game.endedNote')}</p>
         )}
       </div>
 
       {/* Reset */}
       <div className="glass rounded-2xl p-4">
-        <p className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-3">Danger Zone</p>
+        <p className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-3">{t('game.danger')}</p>
         <ActionButton
           label={confirmReset
-            ? '⚠ Confirm reset — click again to wipe players & answers'
-            : '🔄 Reset Game (clears all players & answers)'}
+            ? t('game.confirmReset')
+            : t('game.reset')}
           onClick={handleReset}
           danger
         />

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
 import { updateGameState } from '../../firebase/db';
+import { useI18n } from '../../i18n/LanguageContext';
 
 export default function HostControl({ gameState }) {
+  const { t } = useI18n();
   const [title,    setTitle]    = useState(gameState?.title   ?? 'QuizLive');
   const [joinUrl,  setJoinUrl]  = useState(gameState?.joinUrl ?? window.location.origin);
   const [saving,   setSaving]   = useState(false);
@@ -53,17 +55,17 @@ export default function HostControl({ gameState }) {
                    hover:from-brand-500 hover:to-purple-500 transition-all
                    shadow-lg shadow-brand-900/50 flex items-center justify-center gap-3"
       >
-        🖥 Open Host Screen (Projector)
+        {t('hostctl.open')}
       </motion.button>
-      <p className="text-center text-white/30 text-xs">Opens /host in a new tab — show this on the projector</p>
+      <p className="text-center text-white/30 text-xs">{t('hostctl.openHint')}</p>
 
       {/* QR toggle */}
       <div className={`glass rounded-2xl p-4 flex items-center justify-between
                        ${isQuestioning ? 'opacity-50' : ''}`}>
         <div>
-          <p className="text-white text-sm font-semibold">Show QR on presentation</p>
+          <p className="text-white text-sm font-semibold">{t('hostctl.showQR')}</p>
           <p className="text-white/30 text-xs mt-0.5">
-            {isQuestioning ? 'Disabled during question' : showQR ? 'QR visible on host screen' : 'QR hidden'}
+            {isQuestioning ? t('hostctl.disabledDuring') : showQR ? t('hostctl.qrVisible') : t('hostctl.qrHidden')}
           </p>
         </div>
         <button
@@ -83,10 +85,10 @@ export default function HostControl({ gameState }) {
 
       {/* Settings */}
       <div className="glass rounded-2xl p-5 space-y-4">
-        <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">Game Settings</p>
+        <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">{t('hostctl.settings')}</p>
 
         <div>
-          <label className="label">Game Title</label>
+          <label className="label">{t('hostctl.gameTitle')}</label>
           <input
             type="text"
             value={title}
@@ -97,7 +99,7 @@ export default function HostControl({ gameState }) {
         </div>
 
         <div>
-          <label className="label">Player Join URL (used for QR code)</label>
+          <label className="label">{t('hostctl.joinUrl')}</label>
           <input
             type="text"
             value={joinUrl}
@@ -106,7 +108,7 @@ export default function HostControl({ gameState }) {
             placeholder="https://your-app.vercel.app"
           />
           <p className="text-white/30 text-xs mt-1">
-            Set to your production URL before the event
+            {t('hostctl.joinUrlHint')}
           </p>
         </div>
 
@@ -115,17 +117,17 @@ export default function HostControl({ gameState }) {
           disabled={saving}
           className="btn-primary"
         >
-          {saving ? 'Saving…' : saved ? '✓ Saved!' : 'Save Settings'}
+          {saving ? t('hostctl.saving') : saved ? t('hostctl.saved') : t('hostctl.save')}
         </button>
       </div>
 
       {/* QR Preview */}
       <div className="glass rounded-2xl p-5 flex flex-col items-center gap-4">
         <div className="self-start flex items-center gap-2">
-          <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">QR Preview</p>
+          <p className="text-xs text-white/40 uppercase tracking-wider font-semibold">{t('hostctl.qrPreview')}</p>
           {dirty && (
             <span className="text-[10px] text-amber-300 bg-amber-500/15 border border-amber-500/30 rounded px-1.5 py-0.5 font-bold">
-              Unsaved — click Save Settings
+              {t('hostctl.unsaved')}
             </span>
           )}
         </div>
@@ -144,7 +146,7 @@ export default function HostControl({ gameState }) {
           className="w-full py-2 rounded-xl glass border border-white/10 text-xs font-semibold
                      text-white/50 hover:text-white hover:border-white/20 transition-all"
         >
-          {copied ? '✓ Copied!' : 'Copy Join URL'}
+          {copied ? t('hostctl.copied') : t('hostctl.copy')}
         </button>
       </div>
     </div>

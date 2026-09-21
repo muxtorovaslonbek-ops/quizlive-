@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase/config';
+import { useI18n } from '../../i18n/LanguageContext';
+import LanguageSwitcher from '../../i18n/LanguageSwitcher';
 
 export default function LoginScreen({ onLogin }) {
+  const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
   const [busy,     setBusy]     = useState(false);
@@ -16,7 +19,7 @@ export default function LoginScreen({ onLogin }) {
       await signInWithEmailAndPassword(auth, 'admin@quizlive.internal', password);
       onLogin();
     } catch {
-      setError('Incorrect password.');
+      setError('login.incorrect');
       setPassword('');
     } finally {
       setBusy(false);
@@ -25,6 +28,7 @@ export default function LoginScreen({ onLogin }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-[#0f0a1e] via-[#1a0a2e] to-[#0a1628]">
+      <LanguageSwitcher className="fixed top-4 right-4 z-20" />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -32,8 +36,8 @@ export default function LoginScreen({ onLogin }) {
       >
         <div className="text-center mb-6">
           <span className="text-5xl">🔐</span>
-          <h1 className="text-2xl font-black gradient-text mt-3">Admin Panel</h1>
-          <p className="text-white/40 text-sm mt-1">Enter your admin password</p>
+          <h1 className="text-2xl font-black gradient-text mt-3">{t('admin.title')}</h1>
+          <p className="text-white/40 text-sm mt-1">{t('login.subtitle')}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-4">
@@ -41,13 +45,13 @@ export default function LoginScreen({ onLogin }) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder={t('login.password')}
             autoFocus
             className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3
                        text-white placeholder-white/30 focus:outline-none focus:border-brand-400
                        focus:bg-white/15 transition-all"
           />
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-red-400 text-sm">{t(error)}</p>}
           <button
             type="submit"
             disabled={busy}
@@ -56,7 +60,7 @@ export default function LoginScreen({ onLogin }) {
                        hover:from-brand-500 hover:to-purple-500 transition-all
                        disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {busy ? 'Signing in…' : 'Login →'}
+            {busy ? t('login.signingIn') : t('login.submit')}
           </button>
         </form>
       </motion.div>
